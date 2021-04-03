@@ -6,7 +6,9 @@ export FLASK_APP="run.py"
 export DEBUG=False
 export TESTING=False
 
+# Api Key Weather
+export APY_KEY="############"
+
 # Database Settings
 export DB_SCHEMA_NAME="gotodata"
-
-export DB_CONNECTION="postgresql://lmevzhqytupajo:b4777e567ca52c3f262ba2d54724a30df820da52a638eb0afab7692bee34b1a6@ec2-23-21-229-200.compute-1.amazonaws.com:5432/deteho8m4a9gio"
+export DB_CONNECTION="postgresql://username:password@host:port/db"

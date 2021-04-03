@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 
-import os, requests
-
+# Flask
 from flask_migrate import Migrate
 from flask import Flask, render_template, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_babelex import Babel
 
+# Utils
+import os, requests
 from datetime import datetime
 from pymongo import MongoClient
 from bs4 import BeautifulSoup as bs
-
-global mongo_db
+from celery.schedules import crontab
 
 app = Flask(
     __name__,
@@ -27,6 +27,12 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_pre_ping": True,
 }
 
+# Celery
+app.config.update(
+    CELERY_BROKER_URL     = 'mongodb://localhost:27017',
+    CELERY_RESULT_BACKEND = 'mongodb://localhost:27017'
+)
+
 babel = Babel(app)
 @babel.localeselector
 def get_locale():
@@ -34,8 +40,16 @@ def get_locale():
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+global mongo_db
 
+# Interno
 from projeto.model import *
+from projeto.celery import *
+
+celery = make_celery(app)
+celery.conf.update(
+    CELERYD_POOL_RESTARTS=True
+)
 
 @app.route('/')
 def dashboard():
@@ -89,8 +103,16 @@ def atualiza_mongodb():
         print("(LOG): EXCEÇÃO AO ATUALIZAR DADOS NO MONGODB:\n\t%s" % e)
 
 
+@celery.on_after_configure.connect
+def setup_periodic_tasks(sender, **kwargs):
+    print('[LOG] Aplicando configuracao de horario')
+    sender.add_periodic_task(crontab(minute = '*/30'), get_info.s(), queue='download')
+
+
+@celery.task()
 def get_info():
 
+    print('[LOG] Baixando informacoes de Clima e da Ibovespa')
     global mongo_db
 
     # ibovespa
@@ -123,13 +145,14 @@ def get_info():
 
             mongo_db.ibovespa.insert_one(ibovespa.to_json())
         else:
+            print('[LOG] Ibovespa sem dados atualizados')
             return
 
     except Exception as e:
         print("(LOG): EXCEÇÃO AO BAIXAR DADOS DO IBOVESPA:\n\t%s" % e)
 
     # clima
-    urls = ['https://api.openweathermap.org/data/2.5/weather?id=' + c + '&appid=0a93da561b67da7eeae7499bd8eb6946&units=metric' for c in ['3448439', '3451190', '3469058', '3470127', '6322752', '3663517', '3452925', '3455775']]
+    urls = ['https://api.openweathermap.org/data/2.5/weather?id=' + c + '&appid=' + os.getenv('API_KEY') + '&units=metric' for c in ['3448439', '3451190', '3469058', '3470127', '6322752', '3663517', '3452925', '3455775']]
         
     for url in urls:
         try:
@@ -168,6 +191,6 @@ def first_request():
         mongo_db = cliente_mongo['gotodata']
 
         atualiza_mongodb()
-        get_info()
+        celery.send_task('projeto.get_info', args=(), kwargs={}, queue='download')
     except Exception as e:
         print("(LOG): EXCEÇÃO AO CONECTAR MONGODB:\n\t%s" % e)
