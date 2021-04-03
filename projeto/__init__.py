@@ -7,11 +7,11 @@ from flask import Flask, render_template, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_babelex import Babel
 
+from datetime import datetime
 from pymongo import MongoClient
 from bs4 import BeautifulSoup as bs
 
-global climas
-global ibovs
+global mongo_db
 
 app = Flask(
     __name__,
@@ -40,22 +40,59 @@ from projeto.model import *
 @app.route('/')
 def dashboard():
 
-    global climas
-    global ibovs
+    global mongo_db
 
     registros = {}
-    registros['ibovespa'] = ibovs.count_documents({})
-    registros['clima'] = climas.count_documents({})
+    registros['ibovespa'] = mongo_db.ibovespa.count_documents({})
+    registros['clima'] = mongo_db.clima.count_documents({})
 
-    ibovespa = list(ibovs.find().sort([('horario', -1)]).limit(5))
-    clima = list(climas.find().sort([('horario', -1)]).limit(5))
+    ibovespa = list(mongo_db.ibovespa.find().sort([('horario', -1)]).limit(5))
+    clima = list(mongo_db.clima.find().sort([('horario', -1)]).limit(5))
 
     return render_template('index.html', registros=registros, ibovespa=ibovespa, clima=clima)
 
 
+def atualiza_mongodb():
+
+    try:
+        global mongo_db
+
+        # busca id's do mongodb e insere apenas aqueles que faltam
+        clima_ids = [i['id'] for i in list(mongo_db.clima.find({}, {'id':1, '_id':0}))]
+        ibov_ids = [i['id'] for i in list(mongo_db.ibovespa.find({}, {'id':1, '_id':0}))]
+
+        clima = Clima.query.filter( ~Clima.id.in_(clima_ids) ).all()
+        if len(clima) != 0:
+            clima = [c.to_json() for c in clima]
+            mongo_db.clima.insert_many(clima)
+
+        ibovespa = Ibovespa.query.filter( ~Ibovespa.id.in_(ibov_ids) ).all()
+        if len(ibovespa) != 0:
+            ibovespa = [i.to_json() for i in ibovespa]
+            mongo_db.ibovespa.insert_many(ibovespa)
+
+        # remover do mongodb os registros que foram excluídos do PostgreSQL
+        mongo_db.clima.remove({
+            'id': {
+                '$in': list(set(clima_ids) - set([c.id for c in Clima.query.all()]))
+            }
+        })
+
+        # clima_ids = [c.id for c in Clima.query.all()]
+        mongo_db.ibovespa.remove({
+            'id': {
+                '$in': list(set(ibov_ids) - set([i.id for i in Ibovespa.query.all()]))
+            }
+        })
+
+    except Exception as e:
+        print("(LOG): EXCEÇÃO AO ATUALIZAR DADOS NO MONGODB:\n\t%s" % e)
+
+
 def get_info():
 
-    # 10h às 17h dias úteis
+    global mongo_db
+
     # ibovespa
     try:
         ibovespa = Ibovespa()
@@ -64,20 +101,29 @@ def get_info():
         session = requests.Session()
         site = session.get(url)
         bs_content = bs(site.content, 'html.parser')
-        bs_content = bs_content.find('div', class_='line-info')
 
-        ibovespa.pontos = int(bs_content.find('div', class_='value').find('p').string)
-        ibovespa.variacao = float(bs_content.find('div', class_='percentage').find('p').string.strip().replace('%',''))
-        ibovespa.id_unidade_variacao = 2
-        ibovespa.minimo = int(bs_content.find('div', class_='minimo').find('p').string)
-        ibovespa.maximo = int(bs_content.find('div', class_='maximo').find('p').string)
-        ibovespa.volume = float(bs_content.find('div', class_='volume').find('p').string.replace('.','').replace(',','.'))
+        ultima_atualizacao = bs_content.find('div', class_='date-update').find('span').string.split('\n')
+        ultima_atualizacao = ultima_atualizacao[2].replace('às', '').strip() + ' ' + ultima_atualizacao[3].split('.')[0].strip()
+        ultima_atualizacao = datetime.strptime(ultima_atualizacao, '%d/%m/%y %Hh%M')
 
-        db.session.add(ibovespa)
-        db.session.flush()
+        ultimo_inserido = Ibovespa.query.order_by(Ibovespa.id.desc()).first().horario
 
-        global ibovs
-        ibovs.insert_one(ibovespa.to_json())
+        if ultima_atualizacao > ultimo_inserido:
+            bs_content = bs_content.find('div', class_='line-info')
+
+            ibovespa.pontos = int(bs_content.find('div', class_='value').find('p').string)
+            ibovespa.variacao = float(bs_content.find('div', class_='percentage').find('p').string.strip().replace('%',''))
+            ibovespa.id_unidade_variacao = 2
+            ibovespa.minimo = int(bs_content.find('div', class_='minimo').find('p').string)
+            ibovespa.maximo = int(bs_content.find('div', class_='maximo').find('p').string)
+            ibovespa.volume = float(bs_content.find('div', class_='volume').find('p').string.replace('.','').replace(',','.'))
+
+            db.session.add(ibovespa)
+            db.session.flush()
+
+            mongo_db.ibovespa.insert_one(ibovespa.to_json())
+        else:
+            return
 
     except Exception as e:
         print("(LOG): EXCEÇÃO AO BAIXAR DADOS DO IBOVESPA:\n\t%s" % e)
@@ -104,36 +150,24 @@ def get_info():
             db.session.add(clima)
             db.session.flush()
 
-            global climas
-            climas.insert_one(clima.to_json())
+            mongo_db.clima.insert_one(clima.to_json())
 
         except Exception as e:
             print("(LOG): EXCEÇÃO AO BAIXAR DADOS DE CLIMA:\n\t%s" % e)
 
     db.session.commit()
-
+    atualiza_mongodb()
 
 
 @app.before_first_request
 def first_request():
 
-    cliente_mongo = MongoClient('mongodb://localhost:27017/')
-    mongo_db = cliente_mongo['gotodata']
+    try:
+        global mongo_db
+        cliente_mongo = MongoClient('mongodb://localhost:27017/')
+        mongo_db = cliente_mongo['gotodata']
 
-    global climas
-    global ibovs
-    climas = mongo_db.clima
-    ibovs = mongo_db.ibovespa
-
-    clima_ids = [i['id'] for i in list(climas.find({}, {'id':1, '_id':0}))]
-    ibov_ids = [i['id'] for i in list(ibovs.find({}, {'id':1, '_id':0}))]
-
-    clima = Clima.query.filter( ~Clima.id.in_(clima_ids) ).all()
-    if len(clima) != 0:
-        clima = [c.to_json() for c in clima]
-        climas.insert_many(clima)
-
-    ibovespa = Ibovespa.query.filter( ~Ibovespa.id.in_(ibov_ids) ).all()
-    if len(ibovespa) != 0:
-        ibovespa = [i.to_json() for i in ibovespa]
-        ibovs.insert_many(ibovespa)
+        atualiza_mongodb()
+        get_info()
+    except Exception as e:
+        print("(LOG): EXCEÇÃO AO CONECTAR MONGODB:\n\t%s" % e)
