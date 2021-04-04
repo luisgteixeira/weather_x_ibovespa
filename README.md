@@ -8,7 +8,10 @@ Relação do clima com o índice da bolsa de valores
 - Utilizar Ubuntu ou outra distribuição Linux
 
 ### Passos para Execução
-1. Alterar ```.gotodata_env``` com os dados do banco PostgreSQL (DB_CONNECTION) e chave da api de clima (API_KEY)
+1. Alterar ```.gotodata_env``` com os seguintes dados:
+	- Chave da api de clima (API_KEY)
+	- Banco PostgreSQL (DB_CONNECTION)
+	- Banco MongoDB (MONGODB_CONNECTION)
 2. Executar arquivo ```install.sh``` para instalar dependências e configurar bancos
 3. Executar arquivo ```execute.sh``` para subir aplicação
     - ```execute.sh --update``` caso precise instalar dependências
