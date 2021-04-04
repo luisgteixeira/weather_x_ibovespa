@@ -12,3 +12,4 @@ export APY_KEY="############"
 # Database Settings
 export DB_SCHEMA_NAME="gotodata"
 export DB_CONNECTION="postgresql://username:password@host:port/db"
+export MONGODB_CONNECTION="mongodb://localhost:27017"

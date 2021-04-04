@@ -29,8 +29,8 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 
 # Celery
 app.config.update(
-    CELERY_BROKER_URL     = 'mongodb://localhost:27017',
-    CELERY_RESULT_BACKEND = 'mongodb://localhost:27017'
+    CELERY_BROKER_URL     = os.getenv('MONGODB_CONNECTION'),
+    CELERY_RESULT_BACKEND = os.getenv('MONGODB_CONNECTION')
 )
 
 babel = Babel(app)
@@ -187,7 +187,7 @@ def first_request():
 
     try:
         global mongo_db
-        cliente_mongo = MongoClient('mongodb://localhost:27017/')
+        cliente_mongo = MongoClient(os.getenv('MONGODB_CONNECTION'))
         mongo_db = cliente_mongo['gotodata']
 
         atualiza_mongodb()
