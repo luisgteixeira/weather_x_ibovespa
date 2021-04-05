@@ -5,6 +5,7 @@ export FLASK_APP="run.py"
 
 export DEBUG=False
 export TESTING=False
+export TZ="America/Fortaleza"
 
 # Api Key Weather
 export APY_KEY="############"

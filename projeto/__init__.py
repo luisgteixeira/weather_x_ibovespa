@@ -7,11 +7,13 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_babelex import Babel
 
 # Utils
-import os, requests
+import os, requests, pytz
 from datetime import datetime
 from pymongo import MongoClient
 from bs4 import BeautifulSoup as bs
 from celery.schedules import crontab
+
+timezone = pytz.timezone( os.getenv('TZ') )
 
 app = Flask(
     __name__,
@@ -48,7 +50,8 @@ from projeto.celery import *
 
 celery = make_celery(app)
 celery.conf.update(
-    CELERYD_POOL_RESTARTS=True
+    CELERYD_POOL_RESTARTS=True,
+    CELERY_TIMEZONE=os.getenv('TZ')
 )
 
 @app.route('/')
@@ -118,19 +121,36 @@ def get_info():
     # ibovespa
     try:
         ibovespa = Ibovespa()
+        ultima_atualizacao = None
+        urls = ['/', '/grafico', '/historico']
+        i = 0
 
-        url = 'https://www.infomoney.com.br/cotacoes/ibovespa/'
-        session = requests.Session()
-        site = session.get(url)
-        bs_content = bs(site.content, 'html.parser')
+        while ultima_atualizacao is None and i < len(urls):
+            url = 'https://www.infomoney.com.br/cotacoes/ibovespa' + urls[i]
+            session = requests.Session()
+            site = session.get(url)
+            bs_content = bs(site.content, 'html.parser')
 
-        ultima_atualizacao = bs_content.find('div', class_='date-update').find('span').string.split('\n')
-        ultima_atualizacao = ultima_atualizacao[2].replace('às', '').strip() + ' ' + ultima_atualizacao[3].split('.')[0].strip()
-        ultima_atualizacao = datetime.strptime(ultima_atualizacao, '%d/%m/%y %Hh%M')
+            ultima_atualizacao = bs_content.find('div', class_='date-update').find('span').string.split('\n')
+            i += 1
+
+        if ultima_atualizacao is None:
+            return
+        else:
+            ultima_atualizacao = ultima_atualizacao[2].replace('às', '').strip() + ' ' + ultima_atualizacao[3].split('.')[0].strip()
+        
+        try:
+            ultima_atualizacao = datetime.strptime(ultima_atualizacao, '%d/%m/%y %Hh%M')
+        except:
+            ultima_atualizacao = datetime.strptime(datetime.now(timezone).strftime('%d/%m/%y') + ' ' + ultima_atualizacao, '%d/%m/%y %Hh%M')
+
+        ultima_atualizacao = ultima_atualizacao.replace(tzinfo=timezone)
 
         ultimo_inserido = Ibovespa.query.order_by(Ibovespa.id.desc()).first().horario
+        ultimo_inserido = ultimo_inserido.replace(tzinfo=pytz.UTC)
+        ultimo_inserido = ultimo_inserido.astimezone(timezone)
 
-        if ultima_atualizacao > ultimo_inserido:
+        if ultimo_inserido is None or ultima_atualizacao > ultimo_inserido:
             bs_content = bs_content.find('div', class_='line-info')
 
             ibovespa.pontos = int(bs_content.find('div', class_='value').find('p').string)
@@ -146,6 +166,8 @@ def get_info():
             mongo_db.ibovespa.insert_one(ibovespa.to_json())
         else:
             print('[LOG] Ibovespa sem dados atualizados')
+            print(f'\tultimo_inserido: {ultimo_inserido}')
+            print(f'\tultima_atualizacao: {ultima_atualizacao}')
             return
 
     except Exception as e:
