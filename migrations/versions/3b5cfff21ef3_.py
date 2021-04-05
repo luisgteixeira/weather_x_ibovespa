@@ -9,6 +9,7 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.sql import table, column
 from sqlalchemy import String, Integer, Date
+from projeto.model import Unidade
 
 
 # revision identifiers, used by Alembic.
@@ -27,11 +28,7 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     schema='gotodata'
     )
-    unidade_table = table('unidade',
-        column('id', Integer),
-        column('medida', String)
-    )
-    op.bulk_insert(unidade_table,
+    op.bulk_insert(Unidade.__table__,
         [
             {'id':1, 'medida':'°C'},
             {'id':2, 'medida':'%'},
