@@ -1,7 +1,7 @@
-import os
+import os, pytz
 
 from sqlalchemy.schema import Sequence
-from projeto import db
+from projeto import db, timezone
 
 schema_name = os.getenv('DB_SCHEMA_NAME')
 
@@ -47,7 +47,7 @@ class Clima(db.Model):
             'unidade_vis':     Unidade.query.get(self.id_unidade_vis).medida,
             'pressao':         self.pressao,
             'unidade_pressao': Unidade.query.get(self.id_unidade_pressao).medida,
-            'horario':         self.horario
+            'horario':         self.horario.replace(tzinfo=pytz.UTC).astimezone(timezone).strftime('%H:%M %d/%m/%Y')
         }
 
 class Ibovespa(db.Model):
@@ -71,5 +71,5 @@ class Ibovespa(db.Model):
             'minimo':           self.minimo,
             'maximo':           self.maximo,
             'volume':           self.volume,
-            'horario':          self.horario
+            'horario':          self.horario.replace(tzinfo=pytz.UTC).astimezone(timezone).strftime('%H:%M %d/%m/%Y')
         }

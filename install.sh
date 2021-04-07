@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*- 
 
 echo -ne '\033[1mConfigurando ambiente virtual   -----\033[0m'
-source .gotodata_env
-pip --disable-pip-version-check install virtualenv | grep -v 'Requirement already'
-
 if [ ! -d "env" ]; then
     virtualenv -q env
 fi
+
+source .gotodata_env
+pip --disable-pip-version-check install virtualenv | grep -v 'Requirement already'
 
 pip install --no-cache-dir --use-feature=2020-resolver -r requirements.txt | grep -v 'Requirement already'
 

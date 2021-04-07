@@ -10,6 +10,7 @@ from flask_babelex import Babel
 import os, requests, pytz
 from datetime import datetime
 from pymongo import MongoClient
+from operator import itemgetter
 from bs4 import BeautifulSoup as bs
 from celery.schedules import crontab
 
@@ -58,13 +59,26 @@ celery.conf.update(
 def dashboard():
 
     global mongo_db
+    atualiza_mongodb()
 
-    registros = {}
-    registros['ibovespa'] = mongo_db.ibovespa.count_documents({})
-    registros['clima'] = mongo_db.clima.count_documents({})
+    try:
+        registros = {}
+        registros['ibovespa'] = mongo_db.ibovespa.count_documents({})
+        registros['clima'] = mongo_db.clima.count_documents({})
 
-    ibovespa = list(mongo_db.ibovespa.find().sort([('horario', -1)]).limit(5))
-    clima = list(mongo_db.clima.find().sort([('horario', -1)]).limit(5))
+        ibovespa = list(mongo_db.ibovespa.find().sort([('horario', -1)]).limit(5))
+        clima = list(mongo_db.clima.find().sort([('horario', -1)]).limit(5))
+    except:
+        # caso haja problema com MongoDB, busca dados do Postgres
+        ibovespa = [i.to_json() for i in Ibovespa.query.all()]
+        ibovespa = sorted(ibovespa, key=itemgetter('id'), reverse=True)[0:6]
+
+        clima = [c.to_json() for c in Clima.query.all()]
+        clima = sorted(clima, key=itemgetter('id'), reverse=True)[0:6]
+
+        registros = {}
+        registros['ibovespa'] = len(ibovespa)
+        registros['clima'] = len(clima)
 
     return render_template('index.html', registros=registros, ibovespa=ibovespa, clima=clima)
 
@@ -201,7 +215,6 @@ def get_info():
             print("(LOG): EXCEÇÃO AO BAIXAR DADOS DE CLIMA:\n\t%s" % e)
 
     db.session.commit()
-    atualiza_mongodb()
 
 
 @app.before_first_request

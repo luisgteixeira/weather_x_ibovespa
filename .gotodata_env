@@ -5,10 +5,10 @@ export FLASK_APP="run.py"
 
 export DEBUG=False
 export TESTING=False
-export TZ="America/Fortaleza"
+export TZ="America/Sao_Paulo"
 
 # Api Key Weather
-export APY_KEY="############"
+export API_KEY="############"
 
 # Database Settings
 export DB_SCHEMA_NAME="gotodata"

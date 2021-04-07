@@ -100,7 +100,7 @@ html,body,h1,h2,h3,h4,h5 {font-family: "Raleway", sans-serif}
             <td>{{ '{:,}'.format(ibov['minimo']).replace(',', '.') }}</td>
             <td>{{ '{:,}'.format(ibov['maximo']).replace(',', '.') }}</td>
             <td>{{ '{:,.2f}'.format(ibov['volume']).replace('.', ';').replace(',', '.').replace(';', ',') }}</td>
-            <td>{{ ibov['horario'].strftime('%H:%M %d/%m/%Y') }}</td>
+            <td>{{ ibov['horario'] }}</td>
         </tr>
       {% endfor %}
     </table><br>
@@ -126,7 +126,7 @@ html,body,h1,h2,h3,h4,h5 {font-family: "Raleway", sans-serif}
             <td>{{ '%.1f'|format(c['umidade'])|string + c['unidade_umidade'] }}</td>
             <td>{{ c['visibilidade']|string + c['unidade_vis'] }}</td>
             <td>{{ '{:,}'.format(c['pressao']).replace(',', '.')|string + c['unidade_pressao'] }}</td>
-            <td>{{ c['horario'].strftime('%H:%M %d/%m/%Y') }}</td>
+            <td>{{ c['horario'] }}</td>
         </tr>
       {% endfor %}
     </table><br>

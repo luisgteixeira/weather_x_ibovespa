@@ -12,7 +12,7 @@ Relação do clima com o índice da bolsa de valores
 	- Chave da api de clima (API_KEY)
 	- Banco PostgreSQL (DB_CONNECTION)
 	- Banco MongoDB (MONGODB_CONNECTION)
-2. Executar arquivo ```install.sh``` para instalar dependências e configurar bancos
+2. Executar arquivo ```install.sh``` para instalar dependências e configurar bancos (mesmo que não exista estrutura para aplicação)
 3. Executar arquivo ```execute.sh``` para subir aplicação
     - ```execute.sh --update``` caso precise instalar dependências
 4. Acessar aplicação via http://localhost:5001/
