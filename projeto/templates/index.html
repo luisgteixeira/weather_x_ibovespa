@@ -1,163 +1,226 @@
-<!DOCTYPE html>
-<html>
-<title>Teste Gotodata</title>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-<style>
-html,body,h1,h2,h3,h4,h5 {font-family: "Raleway", sans-serif}
-</style>
-<body class="w3-light-grey">
+{% extends 'layouts/base.html' %}
 
-<div class="w3-bar w3-top w3-black w3-large" style="z-index:4">
-  <button class="w3-bar-item w3-button w3-hide-large w3-hover-none w3-hover-text-light-grey" onclick="abre_menu();"><i class="fa fa-bars"></i>  Menu</button>
-  <span class="w3-bar-item w3-right"><br></span>
-</div>
+{% block title %} Dashboard {% endblock title %}
 
-<div class="w3-sidebar w3-collapse w3-white w3-animate-left" style="z-index:3;width:300px;" id="barraMenu"><br>
-  <div class="w3-container w3-row">
-    <div class="w3-col s4">
-      <img src="/static/img/gotodata.png" class="w3-circle w3-margin-right" style="width:90%">
-    </div>
-  </div>
-  <hr>
-  <div class="w3-container">
-    <h5>Dashboard</h5>
-  </div>
-  <div class="w3-bar-block">
-    <a href="#" class="w3-bar-item w3-button w3-padding-16 w3-hide-large w3-dark-grey w3-hover-black" onclick="fecha_menu()" title="close menu"><i class="fa fa-remove fa-fw"></i>  Close Menu</a>
-    <a href="#" class="w3-bar-item w3-button w3-padding w3-blue"><i class="fa fa-users fa-fw"></i>  Overview</a>
-    <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-eye fa-fw"></i>  Views</a>
-    <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-users fa-fw"></i>  Traffic</a>
-    <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-bullseye fa-fw"></i>  Geo</a>
-    <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-diamond fa-fw"></i>  Orders</a>
-    <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-bell fa-fw"></i>  News</a>
-    <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-bank fa-fw"></i>  General</a>
-    <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-history fa-fw"></i>  History</a>
-    <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-cog fa-fw"></i>  Settings</a><br><br>
-  </div>
-</div>
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
 
+{% block content %}
 
-<!-- Efeito Overlay quando abre menu lateral em telas menores -->
-<div class="w3-overlay w3-hide-large w3-animate-opacity" onclick="fecha_menu()" style="cursor:pointer" title="close side menu" id="overlay"></div>
-
-<div class="w3-main" style="margin-left:300px;margin-top:43px;">
-
-  <header class="w3-container" style="padding-top:22px">
-    <h5><b><i class="fa fa-dashboard"></i> Ibovespa x Prev. do Tempo</b></h5>
-    <p>Atualizado há cada 30 min.</p>
-  </header>
-
-  <div class="w3-row-padding w3-margin-bottom">
-    <div class="w3-quarter">
-      <div class="w3-container w3-blue w3-padding-16">
-        <div class="w3-left"><i class="fa fa-line-chart w3-xxxlarge"></i></div>
-        <div class="w3-right">
-          <h3>{{ '{:,}'.format(registros['ibovespa']).replace(',', '.') }}<br>downloads</h3>
+    <!-- Header -->
+    <div class="header bg-primary pb-6">
+      <div class="container-fluid">
+        <div class="header-body">
+          <div class="row align-items-center py-4">
+            <div class="col-lg-6 col-7">
+              <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
+                <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
+                  <li class="breadcrumb-item"><a href="#"><i class="fas fa-home"></i></a></li>
+                  <li class="breadcrumb-item"><a href="#">Dashboards</a></li>
+                  <li class="breadcrumb-item active" aria-current="page">Ibovespa x Prev. do Tempo</li>
+                </ol>
+              </nav>
+            </div>
+          </div>
+          <!-- Card stats -->
+          <div class="row">
+            <div class="col-xl-3 col-md-6">
+              <div class="card card-stats">
+                <!-- Card body -->
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col">
+                      <h5 class="card-title text-uppercase text-muted mb-0">Ibovespa</h5>
+                      <span class="h2 font-weight-bold mb-0">{{ '{:,}'.format(registros['ibovespa']).replace(',', '.') }}</span>
+                    </div>
+                    <div class="col-auto">
+                      <div class="icon icon-shape bg-gradient-red text-white rounded-circle shadow">
+                        <i class="ni ni-chart-bar-32"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+              <div class="card card-stats">
+                <!-- Card body -->
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col">
+                      <h5 class="card-title text-uppercase text-muted mb-0">Previsão do Tempo</h5>
+                      <span class="h2 font-weight-bold mb-0">{{ '{:,}'.format(registros['clima']).replace(',', '.') }}</span>
+                    </div>
+                    <div class="col-auto">
+                      <div class="icon icon-shape bg-gradient-orange text-white rounded-circle shadow">
+                        <i class="ni ni-umbrella-13"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <br><br>
-        <h4>Ibovespa</h4>
       </div>
     </div>
-    <div class="w3-quarter">
-      <div class="w3-container w3-teal w3-padding-16">
-        <div class="w3-left"><i class="fa fa-sun-o w3-xxxlarge"></i></div>
-        <div class="w3-right">
-          <h3>{{ '{:,}'.format(registros['clima']).replace(',', '.') }}<br>downloads</h3>
+
+    <!-- Page content -->
+    <div class="container-fluid mt--6">
+      <div class="row">
+        <div class="col-xl-6">
+          <div class="card bg-default">
+            <div class="card-header bg-transparent">
+              <div class="row align-items-center">
+                <div class="col">
+                  <h6 class="text-light text-uppercase ls-1 mb-1">Visão Geral</h6>
+                  <h5 class="h3 text-white mb-0">Ibovespa x Previsão do Tempo</h5>
+                </div>
+                <div class="col">
+                  <ul class="nav nav-pills justify-content-end">
+                    <li class="nav-item mr-2 mr-md-0" data-toggle="chart" data-target="#chart-sales-dark" data-update='{"data":{"datasets":[{"data":[100, 20, 10, 30, 15, 40, 20, 60, 60]}]}}' data-prefix="" data-suffix="">
+                      <a href="#" class="nav-link py-2 px-3 active" data-toggle="tab">
+                        <span class="d-none d-md-block">Pontos</span>
+                        <span class="d-md-none">P</span>
+                      </a>
+                    </li>
+                    <li class="nav-item" data-toggle="chart" data-target="#chart-sales-dark" data-update='{"data":{"labels": ["25°C", "30°C", "22°C", "19°C", "26°C", "32°C", "27°C", "26°C", "25°C"], "datasets":[{"data":[2, 2, 3, 3, 6, 1, 5, 4, 15]}]}}' data-prefix="" data-suffix="%">
+                      <a href="#" class="nav-link py-2 px-3" data-toggle="tab">
+                        <span class="d-none d-md-block">Variação</span>
+                        <span class="d-md-none">V</span>
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <!-- Chart -->
+              <div class="chart">
+                <!-- Chart wrapper -->
+                <canvas id="chart-sales-dark" class="chart-canvas"></canvas>
+              </div>
+            </div>
+          </div>
         </div>
-        <br><br>
-        <h4>Previsão do Tempo</h4>
+        <div class="col-xl-6">
+          <div class="card">
+            <div class="card-header bg-transparent">
+              <div class="row align-items-center">
+                <div class="col">
+                  <h6 class="text-uppercase text-muted ls-1 mb-1">Última</h6>
+                  <h5 class="h3 mb-0">Previsão do Tempo</h5>
+                </div>
+                <div class="col">
+                  <ul class="nav nav-pills justify-content-end">
+                      <li class="nav-item mr-2 mr-md-0" data-toggle="chart" data-target="#chart-bars" data-update='{{ ultima_previsao }}' data-prefix="" data-suffix="°C">
+                      <a href="#" class="nav-link py-2 px-3 active" data-toggle="tab">
+                        <span class="d-none d-md-block">Atualizar</span>
+                        <span class="d-md-none">⟳</span>
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <!-- Chart -->
+              <div class="chart">
+                <canvas id="chart-bars" class="chart-canvas"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+      <div class="row">
+        <div class="col-xl-6">
+          <div class="card">
+            <div class="card-header border-0">
+              <div class="row align-items-center">
+                <div class="col">
+                  <h3 class="mb-0">Índice Bovespa (Top 5)</h3>
+                </div>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <!-- Projects table -->
+              <table class="table align-items-center table-flush">
+                <thead class="thead-light">
+                  <tr>
+                    <th scope="col">Pontos</th>
+                    <th scope="col">Variação</th>
+                    <th scope="col">Mínimo</th>
+                    <th scope="col">Máximo</th>
+                    <th scope="col">Volume</th>
+                    <th scope="col">Horário</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for ibov in ibovespa %}
+                    <tr>
+                        <td>{{ '{:,}'.format(ibov['pontos']).replace(',', '.') }}</td>
+                        <td>{{ ibov['variacao']|string + ibov['unidade_variacao'] }}</td>
+                        <td>{{ '{:,}'.format(ibov['minimo']).replace(',', '.') }}</td>
+                        <td>{{ '{:,}'.format(ibov['maximo']).replace(',', '.') }}</td>
+                        <td>{{ '{:,.2f}'.format(ibov['volume']).replace('.', ';').replace(',', '.').replace(';', ',') }}</td>
+                        <td>{{ ibov['horario'] }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-6">
+          <div class="card">
+            <div class="card-header border-0">
+              <div class="row align-items-center">
+                <div class="col">
+                  <h3 class="mb-0">Previsão do Tempo (Top 5)</h3>
+                </div>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <!-- Projects table -->
+              <table class="table align-items-center table-flush">
+                <thead class="thead-light">
+                  <tr>
+                    <th scope="col">Cidade</th>
+                    <th scope="col">Temperatura</th>
+                    <th scope="col">Umidade</th>
+                    <th scope="col">Visibilidade</th>
+                    <th scope="col">Pressão</th>
+                    <th scope="col">Horário</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for c in clima %}
+                    <tr>
+                        <td>{{ c['cidade'] }}</td>
+                        <td>{{ c['temperatura']|string + c['unidade_temp'] }}</td>
+                        <td>{{ '%.1f'|format(c['umidade'])|string + c['unidade_umidade'] }}</td>
+                        <td>{{ c['visibilidade']|string + c['unidade_vis'] }}</td>
+                        <td>{{ '{:,}'.format(c['pressao']).replace(',', '.')|string + c['unidade_pressao'] }}</td>
+                        <td>{{ c['horario'] }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {% include "includes/footer.html" %}
+
     </div>
-  </div>
 
-  <div class="w3-panel">
-    <div class="w3-row-padding" style="margin:0 -16px">
-      <!-- / -->
-    </div>
-  </div>
+{% endblock content %}
 
-    
+<!-- Specific JS goes HERE --> 
+{% block javascripts %}
 
-  <div class="w3-container">
-    <h5>Índice Bovespa (Top 5)</h5>
-    <table class="w3-table w3-striped w3-bordered w3-border w3-hoverable w3-white">
-    <tr>
-        <th>Pontos</th>
-        <th>Variação (Dia)</th>
-        <th>Mínimo (Dia)</th>
-        <th>Máximo (Dia)</th>
-        <th>Volume</th>
-        <th>Horário</th>
-    </tr>
-      {% for ibov in ibovespa %}
-        <tr>
-            <td>{{ '{:,}'.format(ibov['pontos']).replace(',', '.') }}</td>
-            <td>{{ ibov['variacao']|string + ibov['unidade_variacao'] }}</td>
-            <td>{{ '{:,}'.format(ibov['minimo']).replace(',', '.') }}</td>
-            <td>{{ '{:,}'.format(ibov['maximo']).replace(',', '.') }}</td>
-            <td>{{ '{:,.2f}'.format(ibov['volume']).replace('.', ';').replace(',', '.').replace(';', ',') }}</td>
-            <td>{{ ibov['horario'] }}</td>
-        </tr>
-      {% endfor %}
-    </table><br>
-  </div>
-  <br>
+  <script src="/static/assets/vendor/chart.js/dist/Chart.min.js"></script>
+  <script src="/static/assets/vendor/chart.js/dist/Chart.extension.js"></script>
 
-
-  <div class="w3-container">
-    <h5>Previsão do Tempo (Top 5)</h5>
-    <table class="w3-table w3-striped w3-bordered w3-border w3-hoverable w3-white">
-    <tr>
-        <th>Cidade</th>
-        <th>Temperatura</th>
-        <th>Umidade</th>
-        <th>Visibilidade</th>
-        <th>Pressão</th>
-        <th>Horário</th>
-    </tr>
-      {% for c in clima %}
-        <tr>
-            <td>{{ c['cidade'] }}</td>
-            <td>{{ c['temperatura']|string + c['unidade_temp'] }}</td>
-            <td>{{ '%.1f'|format(c['umidade'])|string + c['unidade_umidade'] }}</td>
-            <td>{{ c['visibilidade']|string + c['unidade_vis'] }}</td>
-            <td>{{ '{:,}'.format(c['pressao']).replace(',', '.')|string + c['unidade_pressao'] }}</td>
-            <td>{{ c['horario'] }}</td>
-        </tr>
-      {% endfor %}
-    </table><br>
-  </div>
-  <br>
-
-</div>
-<footer class="w3-container w3-padding-16 w3-dark-grey">
-</footer>
-
-
-<script>
-var barraMenu = document.getElementById("barraMenu");
-
-var overlayBg = document.getElementById("overlay");
-
-function abre_menu() {
-  if (barraMenu.style.display === 'block') {
-    barraMenu.style.display = 'none';
-    overlayBg.style.display = "none";
-  } else {
-    barraMenu.style.display = 'block';
-    overlayBg.style.display = "block";
-  }
-}
-
-function fecha_menu() {
-  barraMenu.style.display = "none";
-  overlayBg.style.display = "none";
-}
-</script>
-
-</body>
-</html>
+{% endblock javascripts %}

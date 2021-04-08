@@ -8,9 +8,11 @@ export TESTING=False
 export TZ="America/Sao_Paulo"
 
 # Api Key Weather
-export API_KEY="############"
+export API_KEY="0a93da561b67da7eeae7499bd8eb6946"
+#export API_KEY="############"
 
 # Database Settings
 export DB_SCHEMA_NAME="gotodata"
-export DB_CONNECTION="postgresql://username:password@host:port/db"
+export DB_CONNECTION="postgresql://yagsujyq:ztPYUsOswO6HTim4jAVOhKKLmUDdCUQ-@queenie.db.elephantsql.com:5432/yagsujyq"
+#export DB_CONNECTION="postgresql://username:password@host:port/db"
 export MONGODB_CONNECTION="mongodb://localhost:27017"

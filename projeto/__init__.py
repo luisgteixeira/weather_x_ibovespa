@@ -66,21 +66,30 @@ def dashboard():
         registros['ibovespa'] = mongo_db.ibovespa.count_documents({})
         registros['clima'] = mongo_db.clima.count_documents({})
 
-        ibovespa = list(mongo_db.ibovespa.find().sort([('horario', -1)]).limit(5))
-        clima = list(mongo_db.clima.find().sort([('horario', -1)]).limit(5))
+        ibovespa = list(mongo_db.ibovespa.find().sort([('horario', -1)]))
+        clima = list(mongo_db.clima.find().sort([('horario', -1)]))
     except:
         # caso haja problema com MongoDB, busca dados do Postgres
         ibovespa = [i.to_json() for i in Ibovespa.query.all()]
-        ibovespa = sorted(ibovespa, key=itemgetter('id'), reverse=True)[0:6]
+        ibovespa = sorted(ibovespa, key=itemgetter('id'), reverse=True)
 
         clima = [c.to_json() for c in Clima.query.all()]
-        clima = sorted(clima, key=itemgetter('id'), reverse=True)[0:6]
+        clima = sorted(clima, key=itemgetter('id'), reverse=True)
 
         registros = {}
         registros['ibovespa'] = len(ibovespa)
         registros['clima'] = len(clima)
 
-    return render_template('index.html', registros=registros, ibovespa=ibovespa, clima=clima)
+    cidades = []
+    temperaturas = []
+    for c in clima[0:8]:
+        cidades.append(c['cidade'])
+        temperaturas.append(c['temperatura'])
+
+    cidades = '", "'.join(cidades)
+    ultima_previsao = '{"data":{"labels": ["' + cidades + '"], "datasets":[{"data":' + str(temperaturas) + '}]}}'
+
+    return render_template('index.html', registros=registros, ibovespa=ibovespa[0:5], clima=clima[0:5], ultima_previsao=ultima_previsao)
 
 
 def atualiza_mongodb():
